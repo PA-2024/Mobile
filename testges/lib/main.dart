@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'service/authentication_provider.dart';
 import 'page/login_page.dart';
-import 'page/my_home_page.dart';
+import 'page/home_screen.dart';
 
 
 void main() {
@@ -48,7 +48,7 @@ class AuthenticationWrapper extends ConsumerWidget {
     final authState = ref.watch(authenticationProvider);
 
     if (authState) {
-      return MyHomePage();
+      return HomeScreen();
     } else {
       return LoginPage();
     }

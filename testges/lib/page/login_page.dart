@@ -25,16 +25,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       final response = await _authService.login(_emailController.text, _passwordController.text);
       final token = response['token'];
       if (token != null) {
-        ref.read(authenticationProvider.notifier).state = true; // Set authenticated state to true
-        // Sauvegardez le token si nécessaire
+        ref.read(authenticationProvider.notifier).state = true;
+        // TODO Sauvegardez le token si nécessaire
       } else {
         setState(() {
-          _errorMessage = 'Erreur de connexion';
+          _errorMessage = 'Erreur de connexion: Token manquant dans la réponse.';
         });
       }
     } catch (e) {
       setState(() {
-        _errorMessage = 'Erreur de connexion';
+        _errorMessage = 'Erreur de connexion: ${e.toString()}';
       });
     } finally {
       setState(() {

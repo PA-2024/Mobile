@@ -16,10 +16,19 @@ class AuthService {
       }),
     );
 
+    print('Request body: ${jsonEncode(<String, String>{
+      'user_email': email,
+      'user_password': password,
+    })}');
+
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
+
     if (response.statusCode == 200) {
       return json.decode(response.body);
     } else {
-      throw Exception('Failed to login');
+      throw Exception('Failed to login: ${response.body}');
     }
   }
 }
