@@ -47,7 +47,7 @@ class AuthenticationWrapper extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authenticationProvider);
 
-    if (authState) {
+    if (authState != null) {
       return HomeScreen();
     } else {
       return LoginPage();

@@ -25,8 +25,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       final response = await _authService.login(_emailController.text, _passwordController.text);
       final token = response['token'];
       if (token != null) {
-        ref.read(authenticationProvider.notifier).state = true;
-        // TODO Sauvegardez le token si nécessaire
+        ref.read(authenticationProvider.notifier).setToken(token); // Stocker le token
+        ref.read(authenticationProvider.notifier).state = true as String?; // Set authenticated state to true
       } else {
         setState(() {
           _errorMessage = 'Erreur de connexion: Token manquant dans la réponse.';
