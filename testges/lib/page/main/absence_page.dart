@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import '../../service/authentication_provider.dart';
 import '../../service/provider/unconfirmed_absence_provider.dart';
+import '../../Model/absence.dart';
 
 class AbsencePage extends ConsumerStatefulWidget {
   @override
@@ -26,14 +28,18 @@ class _AbsencePageState extends ConsumerState<AbsencePage> {
     _onRefresh();
   }
 
+  String _formatDate(DateTime date) {
+    return DateFormat('dd MMM yyyy, HH:mm').format(date);
+  }
+
   @override
   Widget build(BuildContext context) {
     final absences = ref.watch(unconfirmedAbsenceProvider);
-    print(absences.length);
 
     return Scaffold(
       appBar: AppBar(
         title: Text('Absence Page'),
+        backgroundColor: Colors.yellow[700],
       ),
       body: SmartRefresher(
         controller: _refreshController,
@@ -43,12 +49,34 @@ class _AbsencePageState extends ConsumerState<AbsencePage> {
           itemBuilder: (context, index) {
             final absence = absences[index];
 
-            return ListTile(
-              title: Text('${absence.subject.name} with ${absence.subject.teacher.firstname} ${absence.subject.teacher.lastname}'),
-              subtitle: Text('Room: ${absence.room}, Building: ${absence.building.name}'),
-              trailing: Text(
-                '${absence.dateStart} - ${absence.dateEnd}',
-                style: TextStyle(fontSize: 12),
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+              child: Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                elevation: 5,
+                child: ListTile(
+                  title: Text(
+                    '${absence.subject.name}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16.0,
+                    ),
+                  ),
+                  subtitle: Text(
+                    'Prof: ${absence.subject.teacher.firstname} ${absence.subject.teacher.lastname}\n'
+                        'Horaire: ${_formatDate(absence.dateStart)} - ${_formatDate(absence.dateEnd)}',
+                    style: TextStyle(
+                      fontSize: 14.0,
+                      color: Colors.black.withOpacity(0.6),
+                    ),
+                  ),
+                  trailing: Icon(Icons.chevron_right),
+                  onTap: () {
+                    // Action à réaliser lors du clic sur la carte
+                  },
+                ),
               ),
             );
           },

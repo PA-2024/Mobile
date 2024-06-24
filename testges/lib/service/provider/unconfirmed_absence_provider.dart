@@ -14,7 +14,6 @@ class UnconfirmedAbsenceNotifier extends StateNotifier<List<Absence>> {
   Future<void> loadUnconfirmedAbsences(String token) async {
     try {
       final absences = await _absenceService.getUnconfirmedAbsences(token);
-      print('Absences loaded: $absences');
       state = absences;
     } catch (e) {
       print('Error loading absences: $e');
