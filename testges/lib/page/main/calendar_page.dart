@@ -39,7 +39,7 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
       endTime: subjectHour.dateEnd,
       subject: subjectHour.subject.name,
       //color: Colors.yellow[700],
-      notes: '${subjectHour.subject.teacher.firstname} ${subjectHour.subject.teacher.lastname}\nSalle: ${subjectHour.room}',
+      notes: '${subjectHour.subject.teacher.firstname} ${subjectHour.subject.teacher.lastname}\n Salle: ${subjectHour.room}',
     ))
         .toList();
     return appointments;
