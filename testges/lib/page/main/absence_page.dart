@@ -41,45 +41,59 @@ class _AbsencePageState extends ConsumerState<AbsencePage> {
         title: Text('Absence Page'),
         backgroundColor: Colors.yellow[700],
       ),
-      body: SmartRefresher(
-        controller: _refreshController,
-        onRefresh: _onRefresh,
-        child: ListView.builder(
-          itemCount: absences.length,
-          itemBuilder: (context, index) {
-            final absence = absences[index];
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.orange[200]!, Colors.yellow[400]!],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: SmartRefresher(
+          controller: _refreshController,
+          onRefresh: _onRefresh,
+          child: ListView.builder(
+            itemCount: absences.length,
+            itemBuilder: (context, index) {
+              final absence = absences[index];
 
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-              child: Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-                elevation: 5,
-                child: ListTile(
-                  title: Text(
-                    '${absence.subject.name}',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16.0,
-                    ),
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                child: Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15.0),
                   ),
-                  subtitle: Text(
-                    'Prof: ${absence.subject.teacher.firstname} ${absence.subject.teacher.lastname}\n'
-                        'Horaire: ${_formatDate(absence.dateStart)} - ${_formatDate(absence.dateEnd)}',
-                    style: TextStyle(
-                      fontSize: 14.0,
-                      color: Colors.black.withOpacity(0.6),
+                  elevation: 5,
+                  child: ListTile(
+                    contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.yellow[700],
+                      child: Icon(Icons.book, color: Colors.white),
                     ),
+                    title: Text(
+                      '${absence.subject.name}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16.0,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'Prof: ${absence.subject.teacher.firstname} ${absence.subject.teacher.lastname}\n'
+                          'Horaire: ${_formatDate(absence.dateStart)} - ${_formatDate(absence.dateEnd)}',
+                      style: TextStyle(
+                        fontSize: 14.0,
+                        color: Colors.black.withOpacity(0.6),
+                      ),
+                    ),
+                    trailing: Icon(Icons.chevron_right, color: Colors.grey),
+                    onTap: () {
+                      // Action à réaliser lors du clic sur la carte
+                    },
                   ),
-                  trailing: Icon(Icons.chevron_right),
-                  onTap: () {
-                    // Action à réaliser lors du clic sur la carte
-                  },
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );
