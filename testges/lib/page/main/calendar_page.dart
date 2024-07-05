@@ -80,7 +80,7 @@ class _CalendarPageState extends ConsumerState<CalendarPage> with SingleTickerPr
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Weekly Calendar'),
+        title: Text('Calendrier'),
         backgroundColor: Colors.yellow[700],
       ),
       body: Container(

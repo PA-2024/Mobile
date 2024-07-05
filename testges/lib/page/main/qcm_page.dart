@@ -5,7 +5,7 @@ class QcmPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('QCM Page'),
+        title: Text('QCM'),
       ),
       body: Center(
         child: Text('QCM Page Content'),

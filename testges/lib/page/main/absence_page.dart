@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../service/authentication_provider.dart';
 import '../../service/provider/unconfirmed_absence_provider.dart';
 import '../../Model/absence.dart';
@@ -32,13 +33,79 @@ class _AbsencePageState extends ConsumerState<AbsencePage> {
     return DateFormat('dd MMM yyyy, HH:mm').format(date);
   }
 
+  void ShowJustifyAbsenceBox(BuildContext context) {
+    final TextEditingController _reasonController = TextEditingController();
+    String? _filePath;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Center(
+          child: Material(
+            type: MaterialType.transparency,
+            child: Container(
+              padding: EdgeInsets.all(20),
+              width: MediaQuery.of(context).size.width * 0.9,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    "Justifier l'absence",
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 20),
+                  TextField(
+                    controller: _reasonController,
+                    decoration: InputDecoration(
+                      labelText: 'Motif',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () async {
+                      FilePickerResult? result = await FilePicker.platform.pickFiles();
+                      if (result != null) {
+                        _filePath = result.files.single.path;
+                      }
+                    },
+                    child: Text('Charger le justificatif'),
+                  ),
+                  if (_filePath != null) Text('Fichier: $_filePath'),
+                  SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      // Enregistrer les données (motif et fichier) ici
+                    },
+                    child: Text('Soumettre'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange, // background (button) color
+                      foregroundColor: Colors.white, // foreground (text) color
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final absences = ref.watch(unconfirmedAbsenceProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Absence Page'),
+        title: Text('Vos absences'),
         backgroundColor: Colors.yellow[700],
       ),
       body: Container(
@@ -87,7 +154,7 @@ class _AbsencePageState extends ConsumerState<AbsencePage> {
                     ),
                     trailing: Icon(Icons.chevron_right, color: Colors.grey),
                     onTap: () {
-                      // Action à réaliser lors du clic sur la carte
+                      ShowJustifyAbsenceBox(context);
                     },
                   ),
                 ),
