@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:intl/intl.dart';
+import 'package:table_calendar/table_calendar.dart';
 import '../../service/authentication_provider.dart';
 import '../../service/provider/subjects_hour_provider.dart';
 import '../../Model/subjects_hour.dart';
@@ -11,13 +12,33 @@ class CalendarPage extends ConsumerStatefulWidget {
   _CalendarPageState createState() => _CalendarPageState();
 }
 
-class _CalendarPageState extends ConsumerState<CalendarPage> {
+class _CalendarPageState extends ConsumerState<CalendarPage> with SingleTickerProviderStateMixin {
   DateTime _focusedDay = DateTime.now();
+  DateTime? _selectedDay;
+  CalendarFormat _calendarFormat = CalendarFormat.week;
+  late AnimationController _animationController;
+  late Animation<double> _animation;
 
   @override
   void initState() {
     super.initState();
+    _selectedDay = _focusedDay;
     _loadEvents();
+    _animationController = AnimationController(
+      duration: const Duration(seconds: 1),
+      vsync: this,
+    );
+    _animation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    );
+    _animationController.repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadEvents() async {
@@ -31,90 +52,143 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
     }
   }
 
-  List<Appointment> _getAppointmentsForWeek() {
+  List<Appointment> _getAppointmentsForDay() {
     final subjectsHours = ref.watch(subjectsHourProvider);
-    final appointments = subjectsHours
+    return subjectsHours
+        .where((subjectHour) => isSameDay(subjectHour.dateStart, _selectedDay))
         .map((subjectHour) => Appointment(
       startTime: subjectHour.dateStart,
       endTime: subjectHour.dateEnd,
       subject: subjectHour.subject.name,
-      //color: Colors.yellow[700],
-      notes: '${subjectHour.subject.teacher.firstname} ${subjectHour.subject.teacher.lastname}\n Salle: ${subjectHour.room}',
+      color: Colors.yellow[700] ?? Colors.yellow,
+      notes:
+      '${subjectHour.subject.teacher.firstname} ${subjectHour.subject.teacher.lastname}\nSalle: ${subjectHour.room}',
     ))
         .toList();
-    return appointments;
   }
 
-  void _changeWeek(int days) async {
+  void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
     setState(() {
-      _focusedDay = _focusedDay.add(Duration(days: days));
+      _selectedDay = selectedDay;
+      _focusedDay = focusedDay;
     });
-    await _loadEvents();
   }
 
   @override
   Widget build(BuildContext context) {
-    final appointments = _getAppointmentsForWeek();
+    final appointments = _getAppointmentsForDay();
 
     return Scaffold(
       appBar: AppBar(
         title: Text('Weekly Calendar'),
         backgroundColor: Colors.yellow[700],
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(
-                  icon: Icon(Icons.arrow_back),
-                  onPressed: () => _changeWeek(-7),
-                ),
-                Text(
-                  'Week of ${DateFormat('MMMM dd, yyyy').format(_focusedDay.subtract(Duration(days: _focusedDay.weekday - 1)))}',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                IconButton(
-                  icon: Icon(Icons.arrow_forward),
-                  onPressed: () => _changeWeek(7),
-                ),
-              ],
-            ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.orange[200]!, Colors.yellow[400]!],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-          Expanded(
-            child: SfCalendar(
-              view: CalendarView.week,
-              dataSource: MeetingDataSource(appointments),
-              initialDisplayDate: _focusedDay,
-              todayHighlightColor: Colors.red,
-              timeSlotViewSettings: TimeSlotViewSettings(
-                timeIntervalHeight: 60,
-                startHour: 0,
-                endHour: 24,
-                timeFormat: 'HH:mm',
-                timeInterval: Duration(minutes: 30),
+        ),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TableCalendar(
+                firstDay: DateTime.utc(2020, 1, 1),
+                lastDay: DateTime.utc(2030, 12, 31),
+                focusedDay: _focusedDay,
+                selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                calendarFormat: _calendarFormat,
+                onDaySelected: _onDaySelected,
+                onPageChanged: (focusedDay) {
+                  _focusedDay = focusedDay;
+                  _loadEvents();
+                },
+                calendarStyle: CalendarStyle(
+                  selectedDecoration: BoxDecoration(
+                    color: Colors.orange,
+                    shape: BoxShape.circle,
+                  ),
+                  todayDecoration: BoxDecoration(
+                    color: Colors.redAccent,
+                    shape: BoxShape.circle,
+                  ),
+                  markerDecoration: BoxDecoration(
+                    color: Colors.yellow[700],
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                headerStyle: HeaderStyle(
+                  formatButtonVisible: false,
+                  titleCentered: true,
+                  leftChevronIcon: Icon(Icons.chevron_left, color: Colors.black),
+                  rightChevronIcon: Icon(Icons.chevron_right, color: Colors.black),
+                ),
               ),
-              appointmentBuilder: (context, details) {
-                final appointment = details.appointments.first;
-                return Container(
-                  decoration: BoxDecoration(
-                    color: appointment.color,
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  child: Center(
-                    child: Text(
-                      appointment.subject,
-                      style: TextStyle(color: Colors.black, fontSize: 12),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                );
-              },
             ),
-          ),
-        ],
+            Expanded(
+              child: appointments.isEmpty
+                  ? Center(
+                child: FadeTransition(
+                  opacity: _animation,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.sentiment_satisfied, color: Colors.orange, size: 80),
+                      SizedBox(height: 16),
+                      Text(
+                        "Pas de cours aujourd'hui!",
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+                  : ListView.builder(
+                itemCount: appointments.length,
+                itemBuilder: (context, index) {
+                  final appointment = appointments[index];
+
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                    child: Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                      elevation: 5,
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: Colors.yellow[700],
+                          child: Icon(Icons.book, color: Colors.white),
+                        ),
+                        title: Text(
+                          appointment.subject,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16.0,
+                          ),
+                        ),
+                        subtitle: Text(
+                          '${appointment.notes}\nHoraire: ${DateFormat('HH:mm').format(appointment.startTime)} - ${DateFormat('HH:mm').format(appointment.endTime)}',
+                          style: TextStyle(
+                            fontSize: 14.0,
+                            color: Colors.black.withOpacity(0.6),
+                          ),
+                        ),
+                        trailing: Icon(Icons.chevron_right),
+                        onTap: () {
+                          // Afficher les détails du cours
+                        },
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
