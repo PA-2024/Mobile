@@ -22,6 +22,22 @@ class _QcmPageState extends ConsumerState<QcmPage> {
     }
   }
 
+  void _connectWebSocket(String idQCM) {
+    print(idQCM);
+    final url = 'wss://apigessignrecette-c5e974013fbd.herokuapp.com/qcm/' + idQCM;
+    ref.read(qcmProvider.notifier).connectWebSocket(url);
+    ref.read(qcmProvider.notifier).messages.listen((message) {
+      // Gérez les messages reçus ici
+      print('Received message: $message');
+    });
+  }
+
+  @override
+  void dispose() {
+    ref.read(qcmProvider.notifier).disconnectWebSocket();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final qcms = ref.watch(qcmProvider);
@@ -48,10 +64,23 @@ class _QcmPageState extends ConsumerState<QcmPage> {
                   color: Colors.orange[700],
                 ),
               ),
+              onTap: () {
+                _connectWebSocket(qcm.id.toString());
+                _joinQCM(qcm.id.toString());
+              },
             ),
           );
         },
       ),
     );
+  }
+
+  void _joinQCM(String qcmId) {
+    final token = ref.read(authenticationProvider);
+    final studentId = 'STUDENT_ID'; // Remplacez par la récupération réelle du Student_Id via le token
+    final studentName = 'STUDENT_NAME'; // Remplacez par la récupération réelle du nom de l'étudiant via le token
+    if (token != null) {
+      ref.read(qcmProvider.notifier).joinQCM(qcmId, token, studentId, studentName);
+    }
   }
 }
