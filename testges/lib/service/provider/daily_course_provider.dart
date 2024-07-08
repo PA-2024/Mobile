@@ -13,9 +13,7 @@ class DailyCourseNotifier extends StateNotifier<List<DailyCourse>> {
 
   Future<void> loadDailyCourses(String token) async {
     try {
-      print('Loading daily courses with token: $token');
       final dailyCourses = await _dailyCourseService.getDailyCourses(token);
-      print('Daily courses loaded: $dailyCourses');
       state = dailyCourses;
     } catch (e) {
       print('Error loading daily courses: $e');

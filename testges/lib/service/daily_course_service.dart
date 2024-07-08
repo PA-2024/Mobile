@@ -13,9 +13,6 @@ class DailyCourseService {
           'accept': 'text/plain',
         },
       );
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
       if (response.statusCode == 200) {
         List<dynamic> body = jsonDecode(response.body);
         return body.map((dynamic item) => DailyCourse.fromJson(item)).toList();
