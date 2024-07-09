@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
@@ -11,13 +10,27 @@ class QcmPage extends ConsumerStatefulWidget {
   _QcmPageState createState() => _QcmPageState();
 }
 
-class _QcmPageState extends ConsumerState<QcmPage> {
+class _QcmPageState extends ConsumerState<QcmPage> with SingleTickerProviderStateMixin {
   String _currentMessage = "";
+  late AnimationController _controller;
+  late Animation<Offset> _animation;
 
   @override
   void initState() {
     super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+    _animation = Tween<Offset>(
+      begin: Offset(0, 1),
+      end: Offset(0, 0),
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    ));
     _loadQCMs();
+    _controller.forward();
   }
 
   Future<void> _loadQCMs() async {
@@ -28,7 +41,6 @@ class _QcmPageState extends ConsumerState<QcmPage> {
   }
 
   void _connectWebSocket(String idQCM) {
-    print(idQCM);
     final url = 'wss://apigessignrecette-c5e974013fbd.herokuapp.com/qcm/' + idQCM;
     ref.read(qcmProvider.notifier).connectWebSocket(url);
     ref.read(qcmProvider.notifier).messages.listen((message) {
@@ -37,7 +49,6 @@ class _QcmPageState extends ConsumerState<QcmPage> {
   }
 
   void _handleMessage(dynamic message) {
-    print('Received message: $message');
     final parsedMessage = jsonDecode(message);
     final action = parsedMessage['action'];
 
@@ -68,7 +79,7 @@ class _QcmPageState extends ConsumerState<QcmPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Error'),
+          title: Text('Erreur'),
           content: Text(message),
           actions: <Widget>[
             TextButton(
@@ -98,30 +109,84 @@ class _QcmPageState extends ConsumerState<QcmPage> {
         title: Text('Vos QCM de la journée'),
         backgroundColor: Colors.yellow[700],
       ),
-      body: qcms.isEmpty
-          ? Center(child: CircularProgressIndicator())
-          : ListView.builder(
-        itemCount: qcms.length,
-        itemBuilder: (context, index) {
-          final qcm = qcms[index];
-          return Card(
-            margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-            child: ListTile(
-              leading: Icon(Icons.quiz, color: Colors.orange[700]),
-              title: Text(
-                qcm.title,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.orange[700],
-                ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.orange[200]!, Colors.yellow[400]!],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: qcms.isEmpty
+            ? Center(child: CircularProgressIndicator())
+            : Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              alignment: Alignment.centerLeft,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Bonjour, [Nom de l\'utilisateur]!',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Voici vos QCM pour aujourd\'hui:',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.black.withOpacity(0.7),
+                    ),
+                  ),
+                ],
               ),
-              onTap: () {
-                _connectWebSocket(qcm.id.toString());
-                _joinQCM(qcm.id.toString());
-              },
             ),
-          );
-        },
+            Expanded(
+              child: ListView.builder(
+                itemCount: qcms.length,
+                itemBuilder: (context, index) {
+                  final qcm = qcms[index];
+                  return SlideTransition(
+                    position: _animation,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                      child: Card(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15.0),
+                        ),
+                        elevation: 5,
+                        child: ListTile(
+                          contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+                          leading: CircleAvatar(
+                            backgroundColor: Colors.orange[700],
+                            child: Icon(Icons.quiz, color: Colors.white),
+                          ),
+                          title: Text(
+                            qcm.title,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.orange[700],
+                            ),
+                          ),
+                          onTap: () {
+                            _connectWebSocket(qcm.id.toString());
+                            _joinQCM(qcm.id.toString());
+                          },
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -143,9 +208,31 @@ class WaitingPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('En attente des questions'),
+        backgroundColor: Colors.yellow[700],
       ),
-      body: Center(
-        child: Text('En attente des questions...'),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.orange[200]!, Colors.yellow[400]!],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
+              ),
+              SizedBox(height: 20),
+              Text(
+                'En attente des questions...',
+                style: TextStyle(fontSize: 18, color: Colors.black.withOpacity(0.6)),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -162,25 +249,41 @@ class QuestionPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Question'),
+        backgroundColor: Colors.yellow[700],
       ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              question,
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 20),
-            ...options.map((option) => ListTile(
-              title: Text(option['text']),
-              leading: Icon(Icons.radio_button_unchecked),
-              onTap: () {
-                // Handle answer selection
-              },
-            )),
-          ],
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.orange[200]!, Colors.yellow[400]!],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                question,
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 20),
+              ...options.map((option) => Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                elevation: 3,
+                child: ListTile(
+                  title: Text(option['text']),
+                  leading: Icon(Icons.radio_button_unchecked),
+                  onTap: () {
+                    // Handle answer selection
+                  },
+                ),
+              )),
+            ],
+          ),
         ),
       ),
     );
