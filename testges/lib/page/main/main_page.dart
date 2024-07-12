@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
 import '../../service/authentication_provider.dart';
 import '../../service/provider/daily_course_provider.dart';
-import '../../service/provider/presence_provider.dart';
+import 'package:testges/page/main/QrScan.dart';
 
 class MainPage extends ConsumerStatefulWidget {
   @override
@@ -186,125 +184,8 @@ class _MainPageState extends ConsumerState<MainPage> with SingleTickerProviderSt
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => QRViewExample(subjectHourId: subjectHourId, ref: ref),
+        builder: (context) => QrScan(subjectHourId: subjectHourId, ref: ref),
       ),
     );
-  }
-}
-
-class QRViewExample extends StatefulWidget {
-  final int? subjectHourId;
-  final WidgetRef ref;
-
-  QRViewExample({required this.subjectHourId, required this.ref});
-
-  @override
-  State<StatefulWidget> createState() => _QRViewExampleState();
-}
-
-class _QRViewExampleState extends State<QRViewExample> {
-  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
-  QRViewController? controller;
-
-  @override
-  void reassemble() {
-    super.reassemble();
-    if (controller != null) {
-      controller!.pauseCamera();
-      controller!.resumeCamera();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: QRView(
-        key: qrKey,
-        onQRViewCreated: _onQRViewCreated,
-        overlay: QrScannerOverlayShape(
-          borderColor: Colors.red,
-          borderRadius: 10,
-          borderLength: 30,
-          borderWidth: 10,
-          cutOutSize: 300,
-        ),
-      ),
-    );
-  }
-
-  void _onQRViewCreated(QRViewController controller) {
-    this.controller = controller;
-    controller.scannedDataStream.listen((scanData) async {
-      final code = scanData.code;
-      final token = widget.ref.read(authenticationProvider);
-      if (token != null) {
-        final decodedToken = JwtDecoder.decode(token);
-        final studentId = decodedToken['Student_Id'].toString();
-        final message = "validate ${widget.subjectHourId} $studentId $code";
-        final url = 'wss://apigessignrecette-c5e974013fbd.herokuapp.com/ws'; // Update with the correct WebSocket URL
-        widget.ref.read(presenceProvider.notifier).connectWebSocket(url);
-
-        widget.ref.read(presenceProvider.notifier).messages.listen((message) {
-          if (message['action'] == 'VALIDATED') {
-            _showSuccess("Présence validée avec succès.");
-          } else if (message['action'] == 'ERROR') {
-            _showError(message['message']);
-          }
-        });
-
-        widget.ref.read(presenceProvider.notifier).sendMessage(message);
-      } else {
-        _showError("Token invalide");
-      }
-
-      Navigator.pop(context); // Close the QR scanner
-    });
-  }
-
-  void _showSuccess(String message) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Succès'),
-          content: Text(message),
-          actions: <Widget>[
-            TextButton(
-              child: Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showError(String message) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Erreur'),
-          content: Text(message),
-          actions: <Widget>[
-            TextButton(
-              child: Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  @override
-  void dispose() {
-    controller?.dispose();
-    widget.ref.read(presenceProvider.notifier).disconnectWebSocket();
-    super.dispose();
   }
 }
