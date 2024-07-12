@@ -20,10 +20,10 @@ class AuthService {
       if (response.statusCode == 200) {
         return json.decode(response.body);
       } else {
-        throw Exception('Failed to login: ${response.body}');
+        throw Exception('Impossible de se connecter, vérifier vos identifiants');
       }
     } catch (e) {
-      throw Exception('Failed to login: ${e.toString()}');
+      throw Exception('Nous rencontrons un problème interne, merci de réessayer plus tard.');
     }
   }
 
