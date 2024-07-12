@@ -1,3 +1,4 @@
+import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
@@ -18,6 +19,21 @@ class QrScan extends StatefulWidget {
 class _QrScanState extends State<QrScan> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   QRViewController? controller;
+  late ConfettiController _confettiController;
+
+  @override
+  void initState() {
+    super.initState();
+    _confettiController = ConfettiController(duration: const Duration(seconds: 3));
+  }
+
+  @override
+  void dispose() {
+    controller?.dispose();
+    _confettiController.dispose();
+    widget.ref.read(presenceProvider.notifier).disconnectWebSocket();
+    super.dispose();
+  }
 
   @override
   void reassemble() {
@@ -31,16 +47,29 @@ class _QrScanState extends State<QrScan> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: QRView(
-        key: qrKey,
-        onQRViewCreated: _onQRViewCreated,
-        overlay: QrScannerOverlayShape(
-          borderColor: Colors.red,
-          borderRadius: 10,
-          borderLength: 30,
-          borderWidth: 10,
-          cutOutSize: 300,
-        ),
+      body: Stack(
+        children: [
+          QRView(
+            key: qrKey,
+            onQRViewCreated: _onQRViewCreated,
+            overlay: QrScannerOverlayShape(
+              borderColor: Colors.red,
+              borderRadius: 10,
+              borderLength: 30,
+              borderWidth: 10,
+              cutOutSize: 300,
+            ),
+          ),
+          Align(
+            alignment: Alignment.center,
+            child: ConfettiWidget(
+              confettiController: _confettiController,
+              blastDirectionality: BlastDirectionality.explosive,
+              shouldLoop: false,
+              colors: const [Colors.green, Colors.blue, Colors.pink, Colors.orange, Colors.purple],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -63,7 +92,10 @@ class _QrScanState extends State<QrScan> {
           Navigator.of(context).pop(); // Dismiss loading dialog
 
           if (message['action'] == 'VALIDATED') {
-            _showSuccess("Présence validée avec succès.");
+            _confettiController.play();
+            Future.delayed(const Duration(seconds: 3), () {
+              Navigator.pop(context); // Return to MainPage
+            });
           } else if (message['action'] == 'ERROR') {
             _showError(message['message']);
           }
@@ -73,8 +105,6 @@ class _QrScanState extends State<QrScan> {
       } else {
         _showError("Token invalide");
       }
-
-      Navigator.pop(context); // Close the QR scanner
     });
   }
 
@@ -100,26 +130,6 @@ class _QrScanState extends State<QrScan> {
     );
   }
 
-  void _showSuccess(String message) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Succès'),
-          content: Text(message),
-          actions: <Widget>[
-            TextButton(
-              child: Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   void _showError(String message) {
     showDialog(
       context: context,
@@ -131,19 +141,13 @@ class _QrScanState extends State<QrScan> {
             TextButton(
               child: Text('OK'),
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop(); // Return to MainPage
               },
             ),
           ],
         );
       },
     );
-  }
-
-  @override
-  void dispose() {
-    controller?.dispose();
-    widget.ref.read(presenceProvider.notifier).disconnectWebSocket();
-    super.dispose();
   }
 }

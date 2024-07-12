@@ -131,7 +131,11 @@ class _MainPageState extends ConsumerState<MainPage> with SingleTickerProviderSt
                       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                       child: GestureDetector(
                         onTap: () {
-                          _navigateToQRScanner(course.id); // Pass the subjectHourId when scanning the QR code
+                          if (!course.studentIsPresent) {
+                            _navigateToQRScanner(course.id); // Pass the subjectHourId when scanning the QR code
+                          } else {
+                            _showAlreadyScannedMessage();
+                          }
                         },
                         child: Card(
                           shape: RoundedRectangleBorder(
@@ -186,6 +190,26 @@ class _MainPageState extends ConsumerState<MainPage> with SingleTickerProviderSt
       MaterialPageRoute(
         builder: (context) => QrScan(subjectHourId: subjectHourId, ref: ref),
       ),
+    );
+  }
+
+  void _showAlreadyScannedMessage() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Information'),
+          content: Text('Vous avez déjà scanné ce cours.'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }
