@@ -21,4 +21,23 @@ class DailyCourseNotifier extends StateNotifier<List<DailyCourse>> {
       throw Exception('Failed to load daily courses');
     }
   }
+
+  void markAsPresent(int subjectHourId) {
+    state = [
+      for (final course in state)
+        if (course.id == subjectHourId)
+          DailyCourse(
+            id: course.id,
+            dateStart: course.dateStart,
+            dateEnd: course.dateEnd,
+            subjectName: course.subjectName,
+            teacherFirstName: course.teacherFirstName,
+            teacherLastName: course.teacherLastName,
+            studentIsPresent: true,
+          )
+        else
+          course
+    ];
+  }
 }
+

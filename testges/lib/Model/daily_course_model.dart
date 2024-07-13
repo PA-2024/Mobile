@@ -28,4 +28,5 @@ class DailyCourse {
       studentIsPresent: json['studentIsPresent'],
     );
   }
+
 }

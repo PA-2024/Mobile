@@ -5,6 +5,7 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import '../../service/authentication_provider.dart';
 import '../../service/provider/presence_provider.dart';
+import '../../service/provider/daily_course_provider.dart';
 
 class QrScan extends StatefulWidget {
   final int? subjectHourId;
@@ -20,6 +21,7 @@ class _QrScanState extends State<QrScan> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   QRViewController? controller;
   late ConfettiController _confettiController;
+  bool _isProcessing = false;
 
   @override
   void initState() {
@@ -77,33 +79,43 @@ class _QrScanState extends State<QrScan> {
   void _onQRViewCreated(QRViewController controller) {
     this.controller = controller;
     controller.scannedDataStream.listen((scanData) async {
-      final code = scanData.code;
-      final token = widget.ref.read(authenticationProvider);
-      if (token != null) {
-        final decodedToken = JwtDecoder.decode(token);
-        final studentId = decodedToken['Student_Id'].toString();
-        final message = "validate ${widget.subjectHourId} $studentId $code";
-        final url = 'wss://apigessignrecette-c5e974013fbd.herokuapp.com/ws';
-        widget.ref.read(presenceProvider.notifier).connectWebSocket(url);
+      if (!_isProcessing) {
+        _isProcessing = true;
+        final code = scanData.code;
+        final token = widget.ref.read(authenticationProvider);
+        if (token != null) {
+          final decodedToken = JwtDecoder.decode(token);
+          final studentId = decodedToken['Student_Id'].toString();
+          final Valitedmessage = "validate ${widget.subjectHourId} $studentId $code";
+          final url = 'wss://apigessignrecette-c5e974013fbd.herokuapp.com/ws';
+          widget.ref.read(presenceProvider.notifier).connectWebSocket(url);
 
-        _showLoadingDialog(); // Show loading dialog
-        widget.ref.read(presenceProvider.notifier).sendMessage(message);
-        widget.ref.read(presenceProvider.notifier).messages.listen((message) {
-          Navigator.of(context).pop(); // Attend une action
+          _showLoadingDialog(); // Show loading dialog
+          widget.ref.read(presenceProvider.notifier).sendMessage(Valitedmessage);
+          widget.ref.read(presenceProvider.notifier).messages.listen((message) async {
+            Navigator.of(context).pop(); // Dismiss loading dialog
 
-          if (message['action'] == 'VALIDATED') {
-            _confettiController.play();
-            Future.delayed(const Duration(seconds: 3), () {
-              Navigator.pop(context); // Return to MainPage
-            });
-          } else if (message['action'] == 'ERROR') {
-            _showError(message['message']);
-          }
-        });
-      } else {
-        _showError("Token invalide");
+            if (message['action'] == 'VALIDATED') {
+              _confettiController.play();
+              await _updateCoursePresence(widget.subjectHourId!);
+              Future.delayed(const Duration(seconds: 3), () {
+                Navigator.pop(context); // Return to MainPage
+              });
+            } else if (message['action'] == 'ERROR') {
+              _showError(message['message']);
+            }
+            _showError(message);
+            //_isProcessing = false;
+          });
+        } else {
+          _showError("Token invalide");
+        }
       }
     });
+  }
+
+  Future<void> _updateCoursePresence(int subjectHourId) async {
+    widget.ref.read(dailyCourseProvider.notifier).markAsPresent(subjectHourId);
   }
 
   void _showLoadingDialog() {

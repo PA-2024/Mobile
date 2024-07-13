@@ -1,7 +1,5 @@
 import 'package:testges/Model/Teacher.dart';
 
-
-
 class Subject {
   final int id;
   final String name;
