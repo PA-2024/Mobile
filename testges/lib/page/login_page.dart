@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:testges/service/auth_service.dart';
-import 'package:testges/service/authentication_provider.dart';
+import '../service/auth_service.dart';
+import '../service/authentication_provider.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   @override
@@ -47,8 +47,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
       final response = await _authService.login(_emailController.text, _passwordController.text);
       final token = response['token'];
       if (token != null) {
-        ref.read(authenticationProvider.notifier).setToken(token); // Stocker le token
-        ref.read(authenticationProvider.notifier).state = true as String?; // Set authenticated state to true
+        await ref.read(authenticationProvider.notifier).setToken(token); // Stocker le token
       } else {
         setState(() {
           _errorMessage = 'Erreur de connexion: Token manquant dans la réponse.';
