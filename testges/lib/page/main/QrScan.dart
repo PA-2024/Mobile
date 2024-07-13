@@ -87,9 +87,9 @@ class _QrScanState extends State<QrScan> {
         widget.ref.read(presenceProvider.notifier).connectWebSocket(url);
 
         _showLoadingDialog(); // Show loading dialog
-
+        widget.ref.read(presenceProvider.notifier).sendMessage(message);
         widget.ref.read(presenceProvider.notifier).messages.listen((message) {
-          Navigator.of(context).pop(); // Dismiss loading dialog
+          Navigator.of(context).pop(); // Attend une action
 
           if (message['action'] == 'VALIDATED') {
             _confettiController.play();
@@ -100,8 +100,6 @@ class _QrScanState extends State<QrScan> {
             _showError(message['message']);
           }
         });
-
-        widget.ref.read(presenceProvider.notifier).sendMessage(message);
       } else {
         _showError("Token invalide");
       }
