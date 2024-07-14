@@ -1,11 +1,13 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import '../../service/authentication_provider.dart';
 import '../../service/provider/unconfirmed_absence_provider.dart';
 import '../../Model/absence.dart';
-import 'justify_absence_dialog.dart';
+import '../../service/upload_service.dart';
 
 class AbsencePage extends ConsumerStatefulWidget {
   @override
@@ -31,6 +33,99 @@ class _AbsencePageState extends ConsumerState<AbsencePage> {
 
   String _formatDate(DateTime date) {
     return DateFormat('dd MMM yyyy, HH:mm').format(date);
+  }
+
+  void ShowJustifyAbsenceBox(BuildContext context, Absence absence) {
+    final TextEditingController _reasonController = TextEditingController();
+    String? _filePath;
+    String? _fileName;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Center(
+          child: Material(
+            type: MaterialType.transparency,
+            child: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+                return Container(
+                  padding: EdgeInsets.all(20),
+                  width: MediaQuery.of(context).size.width * 0.9,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        "Justifier l'absence",
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(height: 20),
+                      TextField(
+                        controller: _reasonController,
+                        decoration: InputDecoration(
+                          labelText: 'Motif',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: () async {
+                          FilePickerResult? result = await FilePicker.platform.pickFiles();
+                          if (result != null && result.files.single.path != null) {
+                            _filePath = result.files.single.path!;
+                            _fileName = result.files.single.name;
+                            setState(() {});
+                          }
+                        },
+                        child: Text('Charger le justificatif'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange[700], // Changer la couleur ici
+                        ),
+                      ),
+                      if (_filePath != null) Text('Fichier: $_fileName'),
+                      SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: () async {
+                          if (_filePath != null) {
+                            final uploadedFileUrl = await uploadFileToCloudinary(_filePath!);
+                            if (uploadedFileUrl != null) {
+                              final token = ref.read(authenticationProvider.notifier).state;
+                              if (token != null) {
+                                await ref.read(unconfirmedAbsenceProvider.notifier).justifyAbsence(
+                                  token,
+                                  absence.id,
+                                  _reasonController.text,
+                                  uploadedFileUrl,
+                                );
+                                Navigator.of(context).pop();
+                              }
+                            } else {
+                              print('File upload failed');
+                            }
+                          } else {
+                            print('No file selected');
+                          }
+                        },
+                        child: Text('Soumettre'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange, // background (button) color
+                          foregroundColor: Colors.white, // foreground (text) color
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -88,7 +183,7 @@ class _AbsencePageState extends ConsumerState<AbsencePage> {
                     ),
                     trailing: Icon(Icons.chevron_right, color: Colors.grey),
                     onTap: () {
-                      ShowJustifyAbsenceBox(context, absence, ref);
+                      ShowJustifyAbsenceBox(context, absence);
                     },
                   ),
                 ),

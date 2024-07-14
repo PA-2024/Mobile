@@ -19,12 +19,11 @@ class QCMWebSocketService {
     _channel.sink.add(joinMessage);
   }
 
-  void sendAnswer(String qcmId, String studentId, int answer) {
+  void sendAnswer(String studentId, List<int> answers) {
     var answerMessage = jsonEncode({
       'action': 'ANSWER',
-      'qcmId': qcmId,
       'studentId': studentId,
-      'answer': answer,
+      'answers': answers,
     });
     _channel.sink.add(answerMessage);
   }

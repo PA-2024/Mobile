@@ -1,9 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:testges/service/provider/qcm_provider.dart';
 import 'package:testges/service/authentication_provider.dart';
+import 'question_page.dart';
+import 'waiting_page.dart';
+import 'feedback_page.dart';
 
 class QcmPage extends ConsumerStatefulWidget {
   @override
@@ -11,7 +15,6 @@ class QcmPage extends ConsumerStatefulWidget {
 }
 
 class _QcmPageState extends ConsumerState<QcmPage> with SingleTickerProviderStateMixin {
-  String _currentMessage = "";
   late AnimationController _controller;
   late Animation<Offset> _animation;
 
@@ -36,7 +39,7 @@ class _QcmPageState extends ConsumerState<QcmPage> with SingleTickerProviderStat
   Future<void> _loadQCMs() async {
     final token = ref.read(authenticationProvider);
     if (token != null) {
-      await ref.read(qcmProvider.notifier).loadQCMs(token, '2021-01-01', '2026-01-01'); // TODO A FIX PAR LA SUITE
+      await ref.read(qcmProvider.notifier).loadQCMs(token, '2021-01-01', '2026-01-01');
     }
   }
 
@@ -66,9 +69,17 @@ class _QcmPageState extends ConsumerState<QcmPage> with SingleTickerProviderStat
         context,
         MaterialPageRoute(
           builder: (context) => QuestionPage(
+            qcmId: parsedMessage['qcmId'],
             question: parsedMessage['text'],
             options: List<Map<String, dynamic>>.from(parsedMessage['options']),
           ),
+        ),
+      );
+    } else if (action == 'FEEDBACK') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => FeedbackPage(result: parsedMessage['result']),
         ),
       );
     }
@@ -199,93 +210,5 @@ class _QcmPageState extends ConsumerState<QcmPage> with SingleTickerProviderStat
       final studentName = decodedToken['unique_name'];
       ref.read(qcmProvider.notifier).joinQCM(qcmId, token, studentId, studentName);
     }
-  }
-}
-
-class WaitingPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('En attente des questions'),
-        backgroundColor: Colors.yellow[700],
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.orange[200]!, Colors.yellow[400]!],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
-              ),
-              SizedBox(height: 20),
-              Text(
-                'En attente des questions...',
-                style: TextStyle(fontSize: 18, color: Colors.black.withOpacity(0.6)),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class QuestionPage extends StatelessWidget {
-  final String question;
-  final List<Map<String, dynamic>> options;
-
-  QuestionPage({required this.question, required this.options});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Question'),
-        backgroundColor: Colors.yellow[700],
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.orange[200]!, Colors.yellow[400]!],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                question,
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 20),
-              ...options.map((option) => Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                elevation: 3,
-                child: ListTile(
-                  title: Text(option['text']),
-                  leading: Icon(Icons.radio_button_unchecked),
-                  onTap: () {
-                    // Handle answer selection
-                  },
-                ),
-              )),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }
