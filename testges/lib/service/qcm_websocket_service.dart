@@ -23,8 +23,9 @@ class QCMWebSocketService {
     var answerMessage = jsonEncode({
       'action': 'ANSWER',
       'studentId': studentId,
-      'answers': answers,
+      'answer': answers,
     });
+    print(answerMessage);
     _channel.sink.add(answerMessage);
   }
 

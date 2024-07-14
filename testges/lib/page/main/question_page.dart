@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:testges/service/authentication_provider.dart';
 import 'package:testges/service/provider/qcm_provider.dart';
 
-import '../../service/authentication_provider.dart';
-
 class QuestionPage extends ConsumerStatefulWidget {
-  final String qcmId;
   final String question;
   final List<Map<String, dynamic>> options;
 
-  QuestionPage({required this.qcmId, required this.question, required this.options});
+  QuestionPage({required this.question, required this.options});
 
   @override
   _QuestionPageState createState() => _QuestionPageState();
@@ -40,7 +38,7 @@ class _QuestionPageState extends ConsumerState<QuestionPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                widget.question,
+                widget.question ?? 'Question non disponible',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 20),
@@ -50,7 +48,7 @@ class _QuestionPageState extends ConsumerState<QuestionPage> {
                 ),
                 elevation: 3,
                 child: ListTile(
-                  title: Text(option['text']),
+                  title: Text(option['text'] ?? 'Option non disponible'),
                   leading: Icon(
                     _selectedOptions.contains(option['id'])
                         ? Icons.check_box

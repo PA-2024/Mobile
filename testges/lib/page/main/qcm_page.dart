@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:testges/page/home_screen.dart';
 import 'package:testges/service/provider/qcm_provider.dart';
 import 'package:testges/service/authentication_provider.dart';
 import 'question_page.dart';
@@ -69,7 +70,6 @@ class _QcmPageState extends ConsumerState<QcmPage> with SingleTickerProviderStat
         context,
         MaterialPageRoute(
           builder: (context) => QuestionPage(
-            qcmId: parsedMessage['qcmId'],
             question: parsedMessage['text'],
             options: List<Map<String, dynamic>>.from(parsedMessage['options']),
           ),
@@ -81,6 +81,12 @@ class _QcmPageState extends ConsumerState<QcmPage> with SingleTickerProviderStat
         MaterialPageRoute(
           builder: (context) => FeedbackPage(result: parsedMessage['result']),
         ),
+      );
+    } else if (action == 'END') {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => HomeScreen()),
+            (route) => false,
       );
     }
   }
@@ -140,7 +146,7 @@ class _QcmPageState extends ConsumerState<QcmPage> with SingleTickerProviderStat
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Bonjour, [Nom de l\'utilisateur]!',
+                    'Bonjour, ',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,

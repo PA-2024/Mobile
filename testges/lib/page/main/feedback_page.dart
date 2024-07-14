@@ -19,25 +19,26 @@ class FeedbackPage extends StatelessWidget {
         child: Center(
           child: AlertDialog(
             title: Text('Résultat'),
-            content: Text(
-              result == "Correct" ? 'Bonne réponse!' : 'Mauvaise réponse.',
-              style: TextStyle(
-                fontSize: 24,
-                backgroundColor: result == "Correct" ? Colors.green : Colors.red,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            actions: <Widget>[
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text('OK'),
-                style: ElevatedButton.styleFrom(
-                   backgroundColor : result == "Correct" ? Colors.green : Colors.red,
+            content: Row(
+              children: [
+                Icon(
+                  result == "Correct" ? Icons.check_circle_outline : Icons.cancel_outlined,
+                  color: result == "Correct" ? Colors.green : Colors.red,
+                  size: 48,
                 ),
-              ),
-            ],
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    result == "Correct" ? 'Bonne réponse!' : 'Mauvaise réponse.',
+                    style: TextStyle(
+                      fontSize: 24,
+                      color: result == "Correct" ? Colors.green : Colors.red,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
