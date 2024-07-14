@@ -1,8 +1,11 @@
+import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 import '../../service/authentication_provider.dart';
 import '../../service/provider/daily_course_provider.dart';
+import '../../service/provider/presence_provider.dart';
 import 'package:testges/page/main/QrScan.dart';
 
 class MainPage extends ConsumerStatefulWidget {
@@ -13,6 +16,8 @@ class MainPage extends ConsumerStatefulWidget {
 class _MainPageState extends ConsumerState<MainPage> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<Offset> _animation;
+  late ConfettiController _confettiController;
+  bool _isProcessing = false;
 
   @override
   void initState() {
@@ -28,6 +33,7 @@ class _MainPageState extends ConsumerState<MainPage> with SingleTickerProviderSt
       parent: _controller,
       curve: Curves.easeInOut,
     ));
+    _confettiController = ConfettiController(duration: const Duration(seconds: 3));
     _loadDailyCourses();
     _controller.forward();
   }
@@ -41,12 +47,13 @@ class _MainPageState extends ConsumerState<MainPage> with SingleTickerProviderSt
 
   void _logout() {
     ref.read(authenticationProvider.notifier).state = null;
-    Navigator.of(context).pushReplacementNamed('/login'); // Assuming you have a login route
+    Navigator.of(context).pushReplacementNamed('/login');
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _confettiController.dispose();
     super.dispose();
   }
 
@@ -83,98 +90,109 @@ class _MainPageState extends ConsumerState<MainPage> with SingleTickerProviderSt
           ),
         ],
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.orange[200]!, Colors.yellow[400]!],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16.0),
-              alignment: Alignment.centerLeft,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Bonjour !',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Voici vos cours pour aujourd\'hui:',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.black.withOpacity(0.7),
-                    ),
-                  ),
-                ],
+      body: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.orange[200]!, Colors.yellow[400]!],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
             ),
-            Expanded(
-              child: dailyCourses.isEmpty
-                  ? Center(child: CircularProgressIndicator())
-                  : ListView.builder(
-                itemCount: dailyCourses.length,
-                itemBuilder: (context, index) {
-                  final course = dailyCourses[index];
-                  return SlideTransition(
-                    position: _animation,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                      child: GestureDetector(
-                        onTap: () {
-                          if (!course.studentIsPresent) {
-                            _navigateToQRScanner(course.id); // Pass the subjectHourId when scanning the QR code
-                          } else {
-                            _showAlreadyScannedMessage();
-                          }
-                        },
-                        child: Card(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15.0),
-                          ),
-                          elevation: 5,
-                          child: ListTile(
-                            contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
-                            leading: CircleAvatar(
-                              backgroundColor: Colors.yellow[700],
-                              child: Icon(Icons.book, color: Colors.white),
-                            ),
-                            title: Text(
-                              course.subjectName,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16.0,
-                              ),
-                            ),
-                            subtitle: Text(
-                              '${course.teacherFirstName} ${course.teacherLastName}\n${DateFormat.Hm().format(course.dateStart)} - ${DateFormat.Hm().format(course.dateEnd)}',
-                              style: TextStyle(
-                                fontSize: 14.0,
-                                color: Colors.black.withOpacity(0.6),
-                              ),
-                            ),
-                            trailing: course.studentIsPresent
-                                ? Icon(Icons.check_circle, color: Colors.green)
-                                : Icon(Icons.check_circle_outline, color: Colors.grey),
-                          ),
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16.0),
+                  alignment: Alignment.centerLeft,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Bonjour !',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
                         ),
                       ),
-                    ),
-                  );
-                },
-              ),
+                      SizedBox(height: 8),
+                      Text(
+                        'Voici vos cours pour aujourd\'hui:',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.black.withOpacity(0.7),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: dailyCourses.isEmpty
+                      ? Center(child: CircularProgressIndicator())
+                      : ListView.builder(
+                    itemCount: dailyCourses.length,
+                    itemBuilder: (context, index) {
+                      final course = dailyCourses[index];
+                      return SlideTransition(
+                        position: _animation,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                          child: GestureDetector(
+                            onTap: () {
+                              if (!course.studentIsPresent) {
+                                _navigateToQRScanner(course.id);
+                              }
+                            },
+                            child: Card(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15.0),
+                              ),
+                              elevation: 5,
+                              child: ListTile(
+                                contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+                                leading: CircleAvatar(
+                                  backgroundColor: Colors.yellow[700],
+                                  child: Icon(Icons.book, color: Colors.white),
+                                ),
+                                title: Text(
+                                  course.subjectName,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16.0,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  '${course.teacherFirstName} ${course.teacherLastName}\n${DateFormat.Hm().format(course.dateStart)} - ${DateFormat.Hm().format(course.dateEnd)}',
+                                  style: TextStyle(
+                                    fontSize: 14.0,
+                                    color: Colors.black.withOpacity(0.6),
+                                  ),
+                                ),
+                                trailing: course.studentIsPresent
+                                    ? Icon(Icons.check_circle, color: Colors.green)
+                                    : Icon(Icons.check_circle_outline, color: Colors.grey),
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+          Align(
+            alignment: Alignment.center,
+            child: ConfettiWidget(
+              confettiController: _confettiController,
+              blastDirectionality: BlastDirectionality.explosive,
+              shouldLoop: false,
+              colors: const [Colors.green, Colors.blue, Colors.pink, Colors.orange, Colors.purple],
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _navigateToQRScanner(null),
@@ -184,27 +202,87 @@ class _MainPageState extends ConsumerState<MainPage> with SingleTickerProviderSt
     );
   }
 
-  void _navigateToQRScanner(int? subjectHourId) {
-    Navigator.push(
+  Future<void> _navigateToQRScanner(int? subjectHourId) async {
+    final code = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => QrScan(subjectHourId: subjectHourId, ref: ref),
+        builder: (context) => QrScan(),
       ),
+    );
+
+    if (code != null && subjectHourId != null) {
+      _handleQRCodeScan(code, subjectHourId);
+    }
+  }
+
+  Future<void> _handleQRCodeScan(String code, int subjectHourId) async {
+    final token = ref.read(authenticationProvider);
+    if (token != null) {
+      final decodedToken = JwtDecoder.decode(token);
+      final studentId = decodedToken['Student_Id'].toString();
+      final message = "validate $subjectHourId $studentId $code";
+      final url = 'wss://apigessignrecette-c5e974013fbd.herokuapp.com/ws';
+      ref.read(presenceProvider.notifier).connectWebSocket(url);
+
+      _showLoadingDialog(); // Show loading dialog
+
+      ref.read(presenceProvider.notifier).sendMessage(message);
+      ref.read(presenceProvider.notifier).messages.listen((message) async {
+        Navigator.of(context).pop(); // Dismiss loading dialog
+
+        if (message['action'] == 'VALIDATED') {
+          _confettiController.play();
+          await _updateCoursePresence(subjectHourId);
+          Future.delayed(const Duration(seconds: 3), () {
+            Navigator.pop(context); // Return to MainPage
+          });
+        } else if (message['action'] == 'ERROR') {
+          _showError(message['message']);
+        }
+      });
+    } else {
+      _showError("Token invalide");
+    }
+  }
+
+  Future<void> _updateCoursePresence(int subjectHourId) async {
+    ref.read(dailyCourseProvider.notifier).markAsPresent(subjectHourId);
+  }
+
+  void _showLoadingDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(width: 20),
+                Text("Connexion en cours..."),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
-  void _showAlreadyScannedMessage() {
+  void _showError(String message) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Information'),
-          content: Text('Vous avez déjà scanné ce cours.'),
+          title: Text('Erreur'),
+          content: Text(message),
           actions: <Widget>[
             TextButton(
               child: Text('OK'),
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(); // Close the dialog
               },
             ),
           ],

@@ -3,9 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'service/authentication_provider.dart';
 import 'page/login_page.dart';
 import 'page/home_screen.dart';
+import 'package:cloudinary_flutter/cloudinary_context.dart';
+import 'package:cloudinary_url_gen/cloudinary.dart';
 
 
 void main() {
+  CloudinaryContext.cloudinary =
+      Cloudinary.fromCloudName(cloudName: "htpfwx3jv");
   runApp(
     ProviderScope(
       child: MyApp(),
