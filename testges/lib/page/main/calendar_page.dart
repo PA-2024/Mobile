@@ -44,10 +44,12 @@ class _CalendarPageState extends ConsumerState<CalendarPage> with SingleTickerPr
   Future<void> _loadEvents() async {
     final token = ref.read(authenticationProvider);
     if (token != null) {
+      final startDate = _focusedDay.subtract(Duration(days: _focusedDay.weekday - 1));
+      final endDate = _focusedDay.add(Duration(days: 7 - _focusedDay.weekday));
       await ref.read(subjectsHourProvider.notifier).loadSubjectsHour(
         token,
-        _focusedDay.subtract(Duration(days: _focusedDay.weekday - 1)).toIso8601String(),
-        _focusedDay.add(Duration(days: 7 - _focusedDay.weekday)).toIso8601String(),
+        startDate.toIso8601String(),
+        endDate.toIso8601String(),
       );
     }
   }
@@ -61,8 +63,7 @@ class _CalendarPageState extends ConsumerState<CalendarPage> with SingleTickerPr
       endTime: subjectHour.dateEnd,
       subject: subjectHour.subject.name,
       color: Colors.yellow[700] ?? Colors.yellow,
-      notes:
-      '${subjectHour.subject.teacher.firstname} ${subjectHour.subject.teacher.lastname}\nSalle: ${subjectHour.room}',
+      notes: '${subjectHour.subject.teacher.firstname} ${subjectHour.subject.teacher.lastname}\nSalle: ${subjectHour.room}',
     ))
         .toList();
   }
@@ -71,6 +72,7 @@ class _CalendarPageState extends ConsumerState<CalendarPage> with SingleTickerPr
     setState(() {
       _selectedDay = selectedDay;
       _focusedDay = focusedDay;
+      _loadEvents();
     });
   }
 
@@ -103,8 +105,10 @@ class _CalendarPageState extends ConsumerState<CalendarPage> with SingleTickerPr
                 calendarFormat: _calendarFormat,
                 onDaySelected: _onDaySelected,
                 onPageChanged: (focusedDay) {
-                  _focusedDay = focusedDay;
-                  _loadEvents();
+                  setState(() {
+                    _focusedDay = focusedDay;
+                    _loadEvents();
+                  });
                 },
                 calendarStyle: CalendarStyle(
                   selectedDecoration: BoxDecoration(

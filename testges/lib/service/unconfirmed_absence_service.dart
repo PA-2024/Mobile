@@ -5,9 +5,9 @@ import '../Model/absence.dart';
 class UnconfirmedAbsenceService {
   Future<List<Absence>> getUnconfirmedAbsences(String token) async {
     final response = await http.get(
-      Uri.parse('https://apigessignrecette-c5e974013fbd.herokuapp.com/api/UnconfirmedAbsences'),
+      Uri.parse('https://apigessignrecette-c5e974013fbd.herokuapp.com/api/Presence/unconfirmed'),
       headers: {
-        'Authorization': 'Bearer $token',
+        'Authorization': token,
       },
     );
 
@@ -23,7 +23,7 @@ class UnconfirmedAbsenceService {
     final response = await http.post(
       Uri.parse('https://apigessignrecette-c5e974013fbd.herokuapp.com/CreateProofAbsence/$absenceId'),
       headers: {
-        'Authorization': 'Bearer $token',
+        'Authorization': token,
         'Content-Type': 'application/json',
       },
       body: json.encode({

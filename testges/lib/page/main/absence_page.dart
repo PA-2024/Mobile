@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../service/authentication_provider.dart';
 import '../../service/provider/unconfirmed_absence_provider.dart';
 import '../../Model/absence.dart';
@@ -33,6 +34,14 @@ class _AbsencePageState extends ConsumerState<AbsencePage> {
 
   String _formatDate(DateTime date) {
     return DateFormat('dd MMM yyyy, HH:mm').format(date);
+  }
+
+  Future<void> _requestStoragePermission() async {
+    if (await Permission.storage.request().isGranted) {
+
+    } else {
+      print('Permission de stockage manquante');
+    }
   }
 
   void ShowJustifyAbsenceBox(BuildContext context, Absence absence) {
@@ -75,6 +84,7 @@ class _AbsencePageState extends ConsumerState<AbsencePage> {
                       SizedBox(height: 20),
                       ElevatedButton(
                         onPressed: () async {
+                          await _requestStoragePermission();
                           FilePickerResult? result = await FilePicker.platform.pickFiles();
                           if (result != null && result.files.single.path != null) {
                             _filePath = result.files.single.path!;
