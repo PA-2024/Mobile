@@ -9,6 +9,7 @@ class QrScan extends StatefulWidget {
 class _QrScanState extends State<QrScan> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   QRViewController? controller;
+  bool _isScanning = false;
 
   @override
   void dispose() {
@@ -45,7 +46,10 @@ class _QrScanState extends State<QrScan> {
   void _onQRViewCreated(QRViewController controller) {
     this.controller = controller;
     controller.scannedDataStream.listen((scanData) {
-      Navigator.pop(context, scanData.code);
+      if (!_isScanning) {
+        _isScanning = true;
+        Navigator.pop(context, scanData.code);
+      }
     });
   }
 }

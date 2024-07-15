@@ -1,11 +1,13 @@
-import 'package:confetti/confetti.dart';
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
-import '../../service/authentication_provider.dart';
-import '../../service/provider/daily_course_provider.dart';
-import '../../service/provider/presence_provider.dart';
+import 'package:testges/service/authentication_provider.dart';
+import 'package:testges/service/provider/daily_course_provider.dart';
+import 'package:testges/service/provider/presence_provider.dart';
+import 'package:confetti/confetti.dart';
 import 'package:testges/page/main/QrScan.dart';
 
 class MainPage extends ConsumerStatefulWidget {
@@ -17,11 +19,15 @@ class _MainPageState extends ConsumerState<MainPage> with SingleTickerProviderSt
   late AnimationController _controller;
   late Animation<Offset> _animation;
   late ConfettiController _confettiController;
+  StreamSubscription? _messageSubscription;
   bool _isProcessing = false;
+  bool _isDialogOpen = false;
+  bool _isMounted = false;
 
   @override
   void initState() {
     super.initState();
+    _isMounted = true;
     _controller = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
@@ -54,6 +60,8 @@ class _MainPageState extends ConsumerState<MainPage> with SingleTickerProviderSt
   void dispose() {
     _controller.dispose();
     _confettiController.dispose();
+    _messageSubscription?.cancel();
+    _isMounted = false;
     super.dispose();
   }
 
@@ -211,7 +219,7 @@ class _MainPageState extends ConsumerState<MainPage> with SingleTickerProviderSt
     );
 
     if (code != null && subjectHourId != null) {
-      _handleQRCodeScan(code, subjectHourId);
+      await _handleQRCodeScan(code, subjectHourId);
     }
   }
 
@@ -222,72 +230,100 @@ class _MainPageState extends ConsumerState<MainPage> with SingleTickerProviderSt
       final studentId = decodedToken['Student_Id'].toString();
       final message = "validate $subjectHourId $studentId $code";
       final url = 'wss://apigessignrecette-c5e974013fbd.herokuapp.com/ws';
-      ref.read(presenceProvider.notifier).connectWebSocket(url);
+      final presenceNotifier = ref.read(presenceProvider.notifier);
+
+      print('Connecting to WebSocket');
+      presenceNotifier.connectWebSocket(url);
 
       _showLoadingDialog(); // Show loading dialog
 
-      ref.read(presenceProvider.notifier).sendMessage(message);
-      ref.read(presenceProvider.notifier).messages.listen((message) async {
-        Navigator.of(context).pop(); // Dismiss loading dialog
+      _messageSubscription?.cancel();
+      _messageSubscription = presenceNotifier.messages.listen((message) async {
+        print('Received message: $message');
+        final parsedMessage = jsonDecode(message);
+        final action = parsedMessage['action'];
+        print('Received action: $action');
+        if (_isDialogOpen) {
+          Navigator.popUntil(context, ModalRoute.withName('/'));
+          _isDialogOpen = false;
+        }
 
-        if (message['action'] == 'VALIDATED') {
-          _confettiController.play();
-          await _updateCoursePresence(subjectHourId);
-          Future.delayed(const Duration(seconds: 3), () {
-            Navigator.pop(context); // Return to MainPage
-          });
-        } else if (message['action'] == 'ERROR') {
-          _showError(message['message']);
+        if (action == 'VALIDATED') {
+          if (_isMounted) {
+            print("ON EST RENTRE ICI");
+            _confettiController.play();
+            ref.read(dailyCourseProvider.notifier).markAsPresent(subjectHourId);
+            setState(() {});
+            _messageSubscription?.cancel();
+          }
+        } else if (action == 'ERROR') {
+          if (_isMounted) {
+            _showError(parsedMessage['message']);
+            _messageSubscription?.cancel();
+          }
         }
       });
+
+      presenceNotifier.sendMessage(message);
     } else {
-      _showError("Token invalide");
+      if (_isMounted) {
+        _showError("Token invalide");
+      }
     }
   }
 
-  Future<void> _updateCoursePresence(int subjectHourId) async {
-    ref.read(dailyCourseProvider.notifier).markAsPresent(subjectHourId);
-  }
-
   void _showLoadingDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return Dialog(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircularProgressIndicator(),
-                SizedBox(width: 20),
-                Text("Connexion en cours..."),
-              ],
+    if (_isMounted) {
+      _isDialogOpen = true;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return Dialog(
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(width: 20),
+                  Text("Connexion en cours..."),
+                ],
+              ),
             ),
-          ),
-        );
-      },
-    );
+          );
+        },
+      ).then((_) {
+        _isDialogOpen = false;
+      });
+    }
   }
 
   void _showError(String message) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Erreur'),
-          content: Text(message),
-          actions: <Widget>[
-            TextButton(
-              child: Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-              },
-            ),
-          ],
-        );
-      },
-    );
+    if (_isMounted) {
+      _isDialogOpen = true;
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Erreur'),
+            content: Text(message),
+            actions: <Widget>[
+              TextButton(
+                child: Text('OK'),
+                onPressed: () {
+                  if (_isMounted) {
+                    Navigator.popUntil(context, ModalRoute.withName('/'));
+                    _isDialogOpen = false;
+                  }
+                },
+              ),
+            ],
+          );
+        },
+      ).then((_) {
+        _isDialogOpen = false;
+      });
+    }
   }
 }
