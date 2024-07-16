@@ -94,7 +94,7 @@ class _AbsencePageState extends ConsumerState<AbsencePage> {
                         },
                         child: Text('Charger le justificatif'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange[700], // Changer la couleur ici
+                          backgroundColor: Colors.orange[700],
                         ),
                       ),
                       if (_filePath != null) Text('Fichier: $_fileName'),
