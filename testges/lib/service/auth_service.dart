@@ -2,7 +2,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class AuthService {
-  final String _baseUrl = 'https://apigessignrecette-c5e974013fbd.herokuapp.com/api';
+  final String _baseUrl = 'https://apipa2024-a0a3b2c9ce54.herokuapp.com/api';
 
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {

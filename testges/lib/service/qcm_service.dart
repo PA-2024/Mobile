@@ -5,7 +5,7 @@ import 'package:testges/Model/qcm.dart';
 class QCMService {
   Future<List<QCM>> getQCMs(String token, String startDate, String endDate) async {
     final response = await http.get(
-      Uri.parse('https://apigessignrecette-c5e974013fbd.herokuapp.com/api/QCM/qcmByRange?StartDate=$startDate&EndDate=$endDate'),
+      Uri.parse('https://apipa2024-a0a3b2c9ce54.herokuapp.com/api/QCM/qcmByRange?StartDate=$startDate&EndDate=$endDate'),
       headers: {
         'accept': 'text/plain',
         'Authorization': token,

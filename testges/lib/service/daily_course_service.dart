@@ -7,7 +7,7 @@ class DailyCourseService {
     try {
       print('Sending request to load daily courses');
       final response = await http.get(
-        Uri.parse('https://apigessignrecette-c5e974013fbd.herokuapp.com/api/Presence/OneDay'),
+        Uri.parse('https://apipa2024-a0a3b2c9ce54.herokuapp.com/api/Presence/OneDay'),
         headers: {
           'Authorization': token,
           'accept': 'text/plain',

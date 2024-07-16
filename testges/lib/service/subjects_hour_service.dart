@@ -3,7 +3,7 @@ import 'dart:convert';
 import '../Model/subjects_hour.dart';
 
 class SubjectsHourService {
-  final String _baseUrl = 'https://apigessignrecette-c5e974013fbd.herokuapp.com/api';
+  final String _baseUrl = 'https://apipa2024-a0a3b2c9ce54.herokuapp.com/api';
 
   Future<List<SubjectsHour>> getSubjectsHourByDateRange(String token, String startDate, String endDate) async {
     final response = await http.get(

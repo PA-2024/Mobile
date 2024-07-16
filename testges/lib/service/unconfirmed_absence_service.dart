@@ -5,7 +5,7 @@ import '../Model/absence.dart';
 class UnconfirmedAbsenceService {
   Future<List<Absence>> getUnconfirmedAbsences(String token) async {
     final response = await http.get(
-      Uri.parse('https://apigessignrecette-c5e974013fbd.herokuapp.com/api/Presence/unconfirmed'),
+      Uri.parse('https://apipa2024-a0a3b2c9ce54.herokuapp.com/api/Presence/unconfirmed'),
       headers: {
         'Authorization': token,
       },
@@ -21,7 +21,7 @@ class UnconfirmedAbsenceService {
 
   Future<http.Response> justifyAbsence(String token, int absenceId, String comment, String fileUrl) async {
     final response = await http.post(
-      Uri.parse('https://apigessignrecette-c5e974013fbd.herokuapp.com/CreateProofAbsence/$absenceId'),
+      Uri.parse('https://apipa2024-a0a3b2c9ce54.herokuapp.com/CreateProofAbsence/$absenceId'),
       headers: {
         'Authorization': token,
         'Content-Type': 'application/json',

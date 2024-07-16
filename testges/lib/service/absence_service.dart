@@ -2,7 +2,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class AbsenceService {
-  final String _baseUrl = 'https://apigessignrecette-c5e974013fbd.herokuapp.com/api';
+  final String _baseUrl = 'https://apipa2024-a0a3b2c9ce54.herokuapp.com/api';
 
   Future<Map<String, dynamic>> getAttendanceSummary(String token) async {
     final response = await http.get(
