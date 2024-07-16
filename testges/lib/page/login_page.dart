@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../service/auth_service.dart';
 import '../service/authentication_provider.dart';
+import 'reset_password_page.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   @override
@@ -49,19 +50,35 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
       if (token != null) {
         await ref.read(authenticationProvider.notifier).setToken(token); // Stocker le token
       } else {
-        setState(() {
-          _errorMessage = 'Erreur de connexion: Token manquant dans la réponse.';
-        });
+        _showErrorDialog('Impossible de se connecter, vérifiez vos identifiants');
       }
     } catch (e) {
-      setState(() {
-        _errorMessage = 'Erreur de connexion: ${e.toString()}';
-      });
+      _showErrorDialog('Impossible de se connecter, vérifiez vos identifiants');
     } finally {
       setState(() {
         _isLoading = false;
       });
     }
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Erreur'),
+          content: Text(message),
+          actions: <Widget>[
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -154,7 +171,10 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
                 ),
               TextButton(
                 onPressed: () {
-                  // Action pour mot de passe oublié
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => ResetPasswordPage()),
+                  );
                 },
                 child: Text('Mot de passe oublié ?'),
                 style: TextButton.styleFrom(

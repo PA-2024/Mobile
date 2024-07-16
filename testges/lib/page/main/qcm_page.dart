@@ -40,7 +40,10 @@ class _QcmPageState extends ConsumerState<QcmPage> with SingleTickerProviderStat
   Future<void> _loadQCMs() async {
     final token = ref.read(authenticationProvider);
     if (token != null) {
-      await ref.read(qcmProvider.notifier).loadQCMs(token, '2021-01-01', '2026-01-01');
+      final today = DateTime.now();
+      final startDate = DateTime(today.year, today.month, today.day).toIso8601String();
+      final endDate = DateTime(today.year, today.month, today.day, 23, 59, 59).toIso8601String();
+      await ref.read(qcmProvider.notifier).loadQCMs(token, startDate, endDate);
     }
   }
 
@@ -133,7 +136,6 @@ class _QcmPageState extends ConsumerState<QcmPage> with SingleTickerProviderStat
     );
   }
 
-
   @override
   void dispose() {
     ref.read(qcmProvider.notifier).disconnectWebSocket();
@@ -158,7 +160,19 @@ class _QcmPageState extends ConsumerState<QcmPage> with SingleTickerProviderStat
           ),
         ),
         child: qcms.isEmpty
-            ? Center(child: CircularProgressIndicator())
+            ? Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.sentiment_satisfied_alt, color: Colors.orange, size: 80),
+              SizedBox(height: 16),
+              Text(
+                "Pas de QCMs prévu aujourd'hui !",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+        )
             : Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

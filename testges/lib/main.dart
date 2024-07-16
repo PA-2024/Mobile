@@ -5,7 +5,7 @@ import 'page/login_page.dart';
 import 'page/home_screen.dart';
 import 'package:cloudinary_flutter/cloudinary_context.dart';
 import 'package:cloudinary_url_gen/cloudinary.dart';
-
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() {
   CloudinaryContext.cloudinary =
@@ -41,6 +41,13 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
+      supportedLocales: [
+        const Locale('fr'),
+      ],
       home: AuthenticationWrapper(),
     );
   }

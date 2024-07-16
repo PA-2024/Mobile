@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:intl/intl.dart';
+import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../service/authentication_provider.dart';
 import '../../service/provider/subjects_hour_provider.dart';
+
 
 class CalendarPage extends ConsumerStatefulWidget {
   @override
@@ -64,6 +65,9 @@ class _CalendarPageState extends ConsumerState<CalendarPage> with SingleTickerPr
       subject: subjectHour.subject.name,
       color: Colors.yellow[700] ?? Colors.yellow,
       notes: '${subjectHour.subject.teacher.firstname} ${subjectHour.subject.teacher.lastname}\nSalle: ${subjectHour.room}',
+      id: subjectHour.id,
+      location: subjectHour.room,
+      resourceIds: [subjectHour.building.name, subjectHour.building.city, subjectHour.building.address],
     ))
         .toList();
   }
@@ -99,6 +103,7 @@ class _CalendarPageState extends ConsumerState<CalendarPage> with SingleTickerPr
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: TableCalendar(
+                locale: 'fr_FR',
                 firstDay: DateTime.utc(2020, 1, 1),
                 lastDay: DateTime.utc(2030, 12, 31),
                 focusedDay: _focusedDay,
@@ -141,7 +146,7 @@ class _CalendarPageState extends ConsumerState<CalendarPage> with SingleTickerPr
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.sentiment_satisfied, color: Colors.orange, size: 80),
+                      Icon(Icons.sentiment_satisfied_alt, color: Colors.orange, size: 80),
                       SizedBox(height: 16),
                       Text(
                         "Pas de cours aujourd'hui!",
@@ -184,7 +189,7 @@ class _CalendarPageState extends ConsumerState<CalendarPage> with SingleTickerPr
                         ),
                         trailing: Icon(Icons.chevron_right),
                         onTap: () {
-                          // Afficher les détails du cours
+                          _showCourseDetailsDialog(context, appointment);
                         },
                       ),
                     ),
@@ -195,6 +200,55 @@ class _CalendarPageState extends ConsumerState<CalendarPage> with SingleTickerPr
           ],
         ),
       ),
+    );
+  }
+
+  void _showCourseDetailsDialog(BuildContext context, Appointment appointment) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(appointment.subject),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Professeur: ${appointment.notes?.split('\n')[0]}',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Salle: ${appointment.location}',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Bâtiment: ${appointment.resourceIds?[0] ?? ''}',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Adresse: ${appointment.resourceIds?[1] ?? ''} - ${appointment.resourceIds?[2] ?? ''}',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Horaire: ${DateFormat('HH:mm').format(appointment.startTime)} - ${DateFormat('HH:mm').format(appointment.endTime)}',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Fermer'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }

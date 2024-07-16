@@ -202,11 +202,6 @@ class _MainPageState extends ConsumerState<MainPage> with SingleTickerProviderSt
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _navigateToQRScanner(null),
-        child: Icon(Icons.qr_code_scanner),
-        backgroundColor: Colors.orange,
-      ),
     );
   }
 

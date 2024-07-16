@@ -27,4 +27,22 @@ class AuthService {
     }
   }
 
+  Future<void> resetPassword(String email) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/Auth/reset?email=$email'),
+        headers: <String, String>{
+          'accept': 'text/plain',
+        },
+        body: '',
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Impossible d\'envoyer l\'email de réinitialisation.');
+      }
+    } catch (e) {
+      throw Exception('Nous rencontrons un problème interne, merci de réessayer plus tard.');
+    }
+  }
+
 }

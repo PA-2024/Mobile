@@ -5,11 +5,23 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="de879340-fece-4521-a317-349270df1080" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/testges/lib/page/reset_password_page.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/testges/lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/testges/lib/main.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/testges/lib/page/login_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/testges/lib/page/login_page.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/testges/lib/page/main/calendar_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/testges/lib/page/main/calendar_page.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/testges/lib/page/main/main_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/testges/lib/page/main/main_page.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/testges/lib/page/main/qcm_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/testges/lib/page/main/qcm_page.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/testges/lib/page/main/question_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/testges/lib/page/main/question_page.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/testges/lib/service/auth_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/testges/lib/service/auth_service.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/testges/linux/flutter/generated_plugin_registrant.cc" beforeDir="false" afterPath="$PROJECT_DIR$/testges/linux/flutter/generated_plugin_registrant.cc" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/testges/linux/flutter/generated_plugins.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/testges/linux/flutter/generated_plugins.cmake" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/testges/macos/Flutter/GeneratedPluginRegistrant.swift" beforeDir="false" afterPath="$PROJECT_DIR$/testges/macos/Flutter/GeneratedPluginRegistrant.swift" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/testges/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/testges/pubspec.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/testges/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/testges/pubspec.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/testges/windows/flutter/generated_plugin_registrant.cc" beforeDir="false" afterPath="$PROJECT_DIR$/testges/windows/flutter/generated_plugin_registrant.cc" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/testges/windows/flutter/generated_plugins.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/testges/windows/flutter/generated_plugins.cmake" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
