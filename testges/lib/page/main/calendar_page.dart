@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../service/authentication_provider.dart';
 import '../../service/provider/subjects_hour_provider.dart';
-import '../../Model/subjects_hour.dart';
 
 class CalendarPage extends ConsumerStatefulWidget {
   @override
@@ -44,8 +43,9 @@ class _CalendarPageState extends ConsumerState<CalendarPage> with SingleTickerPr
   Future<void> _loadEvents() async {
     final token = ref.read(authenticationProvider);
     if (token != null) {
-      final startDate = _focusedDay.subtract(Duration(days: _focusedDay.weekday - 1));
-      final endDate = _focusedDay.add(Duration(days: 7 - _focusedDay.weekday));
+      final startDate = _focusedDay.subtract(Duration(days: 365));
+      final endDate = _focusedDay.add(Duration(days: 365));
+      print('Loading events from $startDate to $endDate'); // Debugging log
       await ref.read(subjectsHourProvider.notifier).loadSubjectsHour(
         token,
         startDate.toIso8601String(),
@@ -79,6 +79,7 @@ class _CalendarPageState extends ConsumerState<CalendarPage> with SingleTickerPr
   @override
   Widget build(BuildContext context) {
     final appointments = _getAppointmentsForDay();
+    print('Appointments for selected day: $appointments'); // Debugging log
 
     return Scaffold(
       appBar: AppBar(

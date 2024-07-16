@@ -83,11 +83,7 @@ class _QcmPageState extends ConsumerState<QcmPage> with SingleTickerProviderStat
         ),
       );
     } else if (action == 'END') {
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => HomeScreen()),
-            (route) => false,
-      );
+      _showEndMessage();
     }
   }
 
@@ -110,6 +106,33 @@ class _QcmPageState extends ConsumerState<QcmPage> with SingleTickerProviderStat
       },
     );
   }
+
+  void _showEndMessage() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Message'),
+          content: Text(
+            'Le QCM est terminé ! 😊',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => HomeScreen()),
+                      (route) => false,
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
 
   @override
   void dispose() {
