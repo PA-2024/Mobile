@@ -9,6 +9,7 @@ import 'package:testges/service/provider/daily_course_provider.dart';
 import 'package:testges/service/provider/presence_provider.dart';
 import 'package:confetti/confetti.dart';
 import 'package:testges/page/main/QrScan.dart';
+import 'package:testges/page/login_page.dart';
 
 class MainPage extends ConsumerStatefulWidget {
   @override
@@ -52,8 +53,10 @@ class _MainPageState extends ConsumerState<MainPage> with SingleTickerProviderSt
   }
 
   void _logout() {
-    ref.read(authenticationProvider.notifier).state = null;
-    Navigator.of(context).pushReplacementNamed('/login');
+    ref.read(authenticationProvider.notifier).clearToken();
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => LoginPage()),
+    );
   }
 
   @override
