@@ -48,7 +48,7 @@ class _QcmPageState extends ConsumerState<QcmPage> with SingleTickerProviderStat
   }
 
   void _connectWebSocket(String idQCM) {
-    final url = 'wss://apigessignrecette-c5e974013fbd.herokuapp.com/qcm/' + idQCM;
+    final url = 'wss://apipa2024-a0a3b2c9ce54.herokuapp.com/qcm/' + idQCM;
     ref.read(qcmProvider.notifier).connectWebSocket(url);
     ref.read(qcmProvider.notifier).messages.listen((message) {
       _handleMessage(message);

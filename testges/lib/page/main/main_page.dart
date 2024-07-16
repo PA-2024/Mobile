@@ -224,7 +224,7 @@ class _MainPageState extends ConsumerState<MainPage> with SingleTickerProviderSt
       final decodedToken = JwtDecoder.decode(token);
       final studentId = decodedToken['Student_Id'].toString();
       final message = "validate $subjectHourId $studentId $code";
-      final url = 'wss://apigessignrecette-c5e974013fbd.herokuapp.com/ws';
+      final url = 'wss://apipa2024-a0a3b2c9ce54.herokuapp.com/ws';
       final presenceNotifier = ref.read(presenceProvider.notifier);
 
       print('Connecting to WebSocket');
